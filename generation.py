@@ -17,7 +17,7 @@ def generate_html(ollama_url, model, full_prompt, prompt_template_name):
     preview_path = PREVIEW_DIR / f"{run_id}.html"
     preview_path.write_text(html_out, encoding="utf-8")
 
-    preview_url = f"/file=previews/{run_id}.html"
+    preview_url = f"gradio_api/file=previews/{run_id}.html"
 
     duration = time.time() - start
     eval_count = resp.get("eval_count", 0)
