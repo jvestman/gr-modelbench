@@ -1,0 +1,76 @@
+- name: webpage
+  prompt: |
+    Create a simple webpage with:
+    - A header saying "Welcome to My Website"
+    - A navigation bar with links Home, About, Contact
+    - A hero section with an image and a call-to-action button
+    - A footer with copyright information
+    
+    Include responsive design elements using CSS.
+- name: itil_rfc
+  prompt: |
+    Create a HTML bootstrap form for creating an ITIL request for change ticket. Have the 10 most important fields present.
+- name: mermaid_saml_sequence_diagram
+  prompt: |
+    Create a HTML page that uses Mermaid.js to show a sequence diagram of SAML authentication. Do not add notes. Use valid Mermaid syntax. Return only the code.
+- name: english
+  prompt: |
+    Create an HTML page for testing be and have verb conjugation suitable for a 10-year-old English learner. Return only the code.
+- name: calculator
+  prompt: |
+    Create a HTML page that is a calculator app. Include unit tests for the calculator functions into the page. Have the unit test log their results to the console log and nowhere else.
+- name: wiki-simple
+  prompt: |
+    Create an HTML page that is a simple wiki supporting markdown format. 
+- name: wiki
+  prompt: |
+    You are an expert web developer specializing in creating interactive web applications with HTML, CSS (specifically Bootstrap), and vanilla JavaScript.
+
+    Create a one-page wiki application that includes the following features:
+    1. A sidebar menu for navigation
+    2. Main content area where articles can be displayed
+    3. Basic CRUD operations (Create, Read, Update, Delete) for managing wiki pages
+
+    Requirements:
+    - Use Bootstrap 5 framework for styling and layout
+    - Implement responsive design principles
+    - Include a simple in-memory storage system using JavaScript objects/arrays
+    - Add basic form validation
+    - Ensure the application is mobile-friendly
+
+    The generated code should be well-structured with clear comments explaining each section. The code should include:
+
+    HTML structure:
+    - Navigation bar at the top
+    - Sidebar menu on the left side (fixed position)
+    - Main content area that expands to fill remaining space
+    - A form for creating/updating wiki pages
+    - Display area for existing pages
+
+    CSS/Bootstrap styling:
+    - Proper spacing and layout using Bootstrap grid system
+    - Responsive design that works on different screen sizes
+    - Basic animations or transitions for better UX
+
+    JavaScript functionality:
+    - Page management (CRUD operations)
+    - Navigation between pages
+    - Form handling for creating/editing pages
+    - Storage of wiki data in memory
+    - Event listeners for user interactions
+
+    Output the complete, ready-to-use HTML file with all necessary CSS and JavaScript included within script tags. The code should be self-contained and work without external dependencies.
+
+    Note: Keep the implementation simple but functional - focus on core features rather than advanced styling or additional libraries. 
+- name: calendar
+  prompt: |
+    Create a HTML page that display the calendar of april 2025.
+- name: deployment
+  prompt: |
+    Create a solution architecture for AI interference service for providing an chat interface for small language models for 100 person department. In addition of chat interface the service provides OpenAI compatible API interface for coding assistant. Create a UML deployment diagram of the architecture with PlantUML and display it as a html page. 
+- name: tetris
+  prompt: |
+    Create a tetris game with html and javascript that works in broser.
+- name: asteroids
+  prompt: |
+    Create an asteroids game with html and javascript that works in browser.    

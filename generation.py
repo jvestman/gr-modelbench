@@ -5,8 +5,7 @@ from ollama import generate as ollama_generate
 from utils import extract_html_from_fences, sha256_text
 from logging_eav import log_generation_eav
 
-def generate_html(ollama_url, model, full_prompt, prompt_template_name):
-    run_id = str(uuid.uuid4())
+def generate_html(run_id, ollama_url, model, full_prompt, prompt_template_name):
     start = time.time()
 
     resp = ollama_generate(ollama_url, model, full_prompt)
@@ -36,6 +35,7 @@ def generate_html(ollama_url, model, full_prompt, prompt_template_name):
         "response_length_chars": len(raw),
         "generation_time_sec": round(duration, 3),
         "eval_count": eval_count,
+        "eval_duration": round(eval_dur_ns / 1e9, 2), 
         "prompt_count": prompt_count,
         "tokens_per_sec": round(tps, 2) if tps else None,
         "preview_url": preview_url
