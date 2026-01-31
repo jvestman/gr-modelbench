@@ -63,7 +63,7 @@ def wrap_iframe(html_content: str) -> str:
     ></iframe>
     """
 
-# ---------- Logging ----------
+# ---------- Logging (EAV) ----------
 
 def log_generation_eav(entity_id: str, data: dict):
     file_exists = LOG_FILE.exists()
@@ -101,7 +101,7 @@ def generate_html(ollama_url, model, full_prompt, prompt_template_name):
     r = requests.post(
         f"{ollama_url.rstrip('/')}/api/generate",
         json={"model": model, "prompt": full_prompt, "stream": False},
-        timeout=60
+        timeout=300
     )
     r.raise_for_status()
     resp = r.json()
@@ -112,6 +112,8 @@ def generate_html(ollama_url, model, full_prompt, prompt_template_name):
     # Save standalone preview file
     preview_path = PREVIEW_DIR / f"{run_id}.html"
     preview_path.write_text(html_out, encoding="utf-8")
+
+    preview_url = f"gradio_api/file=previews/{run_id}.html"
 
     duration = time.time() - start
     eval_count = resp.get("eval_count", 0)
@@ -132,15 +134,12 @@ def generate_html(ollama_url, model, full_prompt, prompt_template_name):
         "eval_count": eval_count,
         "prompt_count": prompt_count,
         "tokens_per_sec": round(tps, 2) if tps else None,
-        "preview_file": str(preview_path)
+        "preview_url": preview_url
     })
 
-    return (
-        html_out,
-        wrap_iframe(html_out),
-        run_id,
-        str(preview_path)
-    )
+    preview_link_md = f"🔗 **[Open preview in new tab]({preview_url})**"
+
+    return html_out, wrap_iframe(html_out), preview_link_md, run_id
 
 # ---------- Human Evaluation ----------
 
@@ -171,7 +170,6 @@ with gr.Blocks(title="Remote Ollama HTML Generator") as app:
     gr.Markdown("## 🦙 Remote Ollama HTML Generator")
 
     last_run_id = gr.State()
-    preview_file = gr.State()
 
     with gr.Row():
         ollama_url = gr.Textbox(label="Ollama Base URL", value=load_ollama_url())
@@ -193,8 +191,8 @@ with gr.Blocks(title="Remote Ollama HTML Generator") as app:
             html_code = gr.Code(language="html", lines=25)
 
         with gr.Tab("Rendered Preview"):
+            preview_link = gr.Markdown()
             html_iframe = gr.HTML()
-            open_preview = gr.File(label="Open preview in new tab")
 
         with gr.Tab("Human Evaluation"):
             gr.Markdown("### Human Evaluation")
@@ -222,7 +220,7 @@ with gr.Blocks(title="Remote Ollama HTML Generator") as app:
     generate_btn.click(
         generate_html,
         inputs=[ollama_url, model_dropdown, full_prompt_box, prompt_selector],
-        outputs=[html_code, html_iframe, last_run_id, open_preview]
+        outputs=[html_code, html_iframe, preview_link, last_run_id]
     )
 
     save_eval_btn.click(
@@ -239,4 +237,4 @@ with gr.Blocks(title="Remote Ollama HTML Generator") as app:
     )
 
 if __name__ == "__main__":
-    app.launch()
+    app.launch(allowed_paths=["previews"])
