@@ -35,14 +35,62 @@ with gr.Blocks(title="Remote Ollama HTML Generator") as app:
             html_iframe = gr.HTML()
 
         with gr.Tab("Human Evaluation"):
-            color_typography = gr.Radio([1,2,3,4,5], label="Color & typography")
-            layout = gr.Radio([1,2,3,4,5], label="Layout")
-            correctness = gr.Radio([1,2,3,4,5], label="Correctness")
-            functionality = gr.Radio([1,2,3,4,5], label="Functionality")
-            comments = gr.Textbox(lines=5, label="Comments")
+            from evaluation_scales import (
+            COLOR_TYPOGRAPHY_SCALE,
+            LAYOUT_SCALE,
+            CORRECTNESS_SCALE,
+            FUNCTIONALITY_SCALE,
+        )
 
-            save_eval_btn = gr.Button("Save Evaluation")
-            eval_status = gr.Textbox(interactive=False)
+
+            with gr.Tab("Human Evaluation"):
+                gr.Markdown("### Human Evaluation – score each criterion")
+
+                with gr.Row():
+                    # Color & Typography
+                    with gr.Column():
+                        color_typography = gr.Radio(
+                            choices=COLOR_TYPOGRAPHY_SCALE,
+                            label="Color & Typography",
+                            type="value"
+                        )
+
+                    # Layout & Structure
+                    with gr.Column():
+                        layout = gr.Radio(
+                            choices=LAYOUT_SCALE,
+                            label="Layout & Structure",
+                            type="value"
+                        )
+
+                    # Correctness
+                    with gr.Column():
+                        correctness = gr.Radio(
+                            choices=CORRECTNESS_SCALE,
+                            label="Correctness",
+                            type="value"
+                        )
+
+                    # Functionality
+                    with gr.Column():
+                        functionality = gr.Radio(
+                            choices=FUNCTIONALITY_SCALE,
+                            label="Functionality",
+                            type="value"
+                        )
+
+                # Free-form comments below
+                comments = gr.Textbox(
+                    label="Free-form evaluation comments",
+                    lines=5,
+                    placeholder="Notes, issues, strengths, edge cases, suggestions…"
+                )
+
+                save_eval_btn = gr.Button("Save Evaluation")
+                eval_status = gr.Textbox(interactive=False)
+
+
+
 
     def _generate(ollama_url, model, prompt, template):
         html_out, preview_url, run_id = generate_html(
