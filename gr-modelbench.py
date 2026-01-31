@@ -6,17 +6,22 @@ import re
 import uuid
 import time
 import csv
+import hashlib
 from pathlib import Path
+
+# ---------- Files ----------
 
 LOG_FILE = Path("log.csv")
 OLLAMA_URL_FILE = Path("ollama_url.txt")
+
+# ---------- System Prompt ----------
 
 SYSTEM_PROMPT = (
     "You're a helpful coding assistant. "
     "Return only the requested code and nothing else."
 )
 
-# ---------- Ollama URL persistence ----------
+# ---------- Persistence ----------
 
 def load_ollama_url(default="http://localhost:11434"):
     if OLLAMA_URL_FILE.exists():
@@ -27,7 +32,7 @@ def save_ollama_url(url: str):
     OLLAMA_URL_FILE.write_text(url.strip(), encoding="utf-8")
     return url
 
-# ---------- Prompt loading ----------
+# ---------- Prompt Loading ----------
 
 def load_prompts(path="prompt.yml"):
     with open(path, "r", encoding="utf-8") as f:
@@ -36,37 +41,15 @@ def load_prompts(path="prompt.yml"):
 
 PROMPTS = load_prompts()
 
-# ---------- Ollama helpers ----------
+# ---------- Utilities ----------
 
-def get_models(ollama_url):
-    try:
-        url = ollama_url.rstrip("/") + "/api/tags"
-        r = requests.get(url, timeout=5)
-        r.raise_for_status()
-        models = [m["name"] for m in r.json().get("models", [])]
-        return gr.Dropdown(choices=models, value=models[0] if models else None)
-    except Exception:
-        return gr.Dropdown(choices=[], value=None)
-
-# ---------- Prompt handling ----------
-
-def build_full_prompt(prompt_name):
-    if not prompt_name:
-        return ""
-    user_prompt = PROMPTS.get(prompt_name, "")
-    return f"{SYSTEM_PROMPT}\n\n{user_prompt}".strip()
-
-# ---------- HTML extraction + rendering ----------
+def sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 def extract_html_from_fences(text: str) -> str:
-    pattern = re.compile(
-        r"```html\s*(.*?)\s*```",
-        re.IGNORECASE | re.DOTALL
-    )
+    pattern = re.compile(r"```html\s*(.*?)\s*```", re.I | re.S)
     match = pattern.search(text)
-    if match:
-        return match.group(1).strip()
-    return text.strip()
+    return match.group(1).strip() if match else text.strip()
 
 def wrap_iframe(html_content: str) -> str:
     escaped = html.escape(html_content)
@@ -78,125 +61,176 @@ def wrap_iframe(html_content: str) -> str:
     ></iframe>
     """
 
-# ---------- Logging ----------
+# ---------- Logging (EAV) ----------
 
 def log_generation_eav(entity_id: str, data: dict):
     file_exists = LOG_FILE.exists()
-
     with LOG_FILE.open("a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-
         if not file_exists:
             writer.writerow(["entity", "attribute", "value"])
+        for k, v in data.items():
+            writer.writerow([entity_id, k, v])
 
-        for key, value in data.items():
-            writer.writerow([entity_id, key, value])
+# ---------- Ollama ----------
+
+def get_models(ollama_url):
+    try:
+        r = requests.get(f"{ollama_url.rstrip('/')}/api/tags", timeout=5)
+        r.raise_for_status()
+        models = [m["name"] for m in r.json().get("models", [])]
+        return gr.Dropdown(choices=models, value=models[0] if models else None)
+    except Exception:
+        return gr.Dropdown(choices=[], value=None)
+
+# ---------- Prompt ----------
+
+def build_full_prompt(prompt_name):
+    if not prompt_name:
+        return ""
+    return f"{SYSTEM_PROMPT}\n\n{PROMPTS[prompt_name]}".strip()
 
 # ---------- Generation ----------
 
-def generate_html(ollama_url, model, full_prompt):
-    start_time = time.time()
+def generate_html(ollama_url, model, full_prompt, prompt_template_name):
     run_id = str(uuid.uuid4())
+    start = time.time()
 
-    url = ollama_url.rstrip("/") + "/api/generate"
-    payload = {
-        "model": model,
-        "prompt": full_prompt,
-        "stream": False
-    }
-
-    r = requests.post(url, json=payload, timeout=60)
+    r = requests.post(
+        f"{ollama_url.rstrip('/')}/api/generate",
+        json={"model": model, "prompt": full_prompt, "stream": False},
+        timeout=300
+    )
     r.raise_for_status()
     resp = r.json()
 
-    raw_output = resp.get("response", "")
-    html_output = extract_html_from_fences(raw_output)
+    raw = resp.get("response", "")
+    html_out = extract_html_from_fences(raw)
 
-    duration_s = time.time() - start_time
-
+    duration = time.time() - start
     eval_count = resp.get("eval_count", 0)
     prompt_count = resp.get("prompt_eval_count", 0)
-    eval_duration_ns = resp.get("eval_duration", 0)
+    eval_dur_ns = resp.get("eval_duration", 0)
 
-    tokens_per_sec = (
-        eval_count / (eval_duration_ns / 1e9)
-        if eval_duration_ns > 0 else None
-    )
+    tps = eval_count / (eval_dur_ns / 1e9) if eval_dur_ns else None
 
     log_generation_eav(run_id, {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "ollama_url": ollama_url,
         "model": model,
+        "prompt_template_name": prompt_template_name,
+        "prompt_sha256": sha256_text(full_prompt),
         "prompt_length_chars": len(full_prompt),
-        "response_length_chars": len(raw_output),
-        "generation_time_sec": round(duration_s, 3),
+        "response_length_chars": len(raw),
+        "generation_time_sec": round(duration, 3),
         "eval_count": eval_count,
         "prompt_count": prompt_count,
-        "tokens_per_sec": round(tokens_per_sec, 2) if tokens_per_sec else None
+        "tokens_per_sec": round(tps, 2) if tps else None
     })
 
-    return html_output, wrap_iframe(html_output)
+    return html_out, wrap_iframe(html_out), run_id
+
+# ---------- Human Evaluation ----------
+
+def save_evaluation(
+    run_id,
+    color_typography,
+    layout,
+    correctness,
+    functionality,
+    comments
+):
+    if not run_id:
+        return "No generation to evaluate."
+
+    log_generation_eav(run_id, {
+        "eval_visual_color_typography": color_typography,
+        "eval_layout_structure": layout,
+        "eval_correctness": correctness,
+        "eval_functionality": functionality,
+        "eval_comments": comments.strip() if comments else ""
+    })
+
+    return "✅ Evaluation saved"
 
 # ---------- UI ----------
 
 with gr.Blocks(title="Remote Ollama HTML Generator") as app:
     gr.Markdown("## 🦙 Remote Ollama HTML Generator")
 
+    last_run_id = gr.State()
+
     with gr.Row():
-        ollama_url = gr.Textbox(
-            label="Ollama Base URL",
-            value=load_ollama_url()
-        )
+        ollama_url = gr.Textbox(label="Ollama Base URL", value=load_ollama_url())
         discover_btn = gr.Button("Discover Models")
 
-    # Persist URL whenever user edits it
-    ollama_url.change(
-        fn=save_ollama_url,
-        inputs=ollama_url,
-        outputs=ollama_url
-    )
+    ollama_url.change(save_ollama_url, ollama_url, ollama_url)
 
-    model_dropdown = gr.Dropdown(label="Available Models")
+    model_dropdown = gr.Dropdown(label="Model")
+    discover_btn.click(get_models, ollama_url, model_dropdown)
 
-    discover_btn.click(
-        fn=get_models,
-        inputs=ollama_url,
-        outputs=model_dropdown
-    )
-
-    prompt_selector = gr.Dropdown(
-        label="Prompt Template",
-        choices=list(PROMPTS.keys())
-    )
-
-    full_prompt_box = gr.Textbox(
-        label="Full Prompt (Editable)",
-        lines=10
-    )
-
-    prompt_selector.change(
-        fn=build_full_prompt,
-        inputs=prompt_selector,
-        outputs=full_prompt_box
-    )
+    prompt_selector = gr.Dropdown(label="Prompt Template", choices=list(PROMPTS))
+    full_prompt_box = gr.Textbox(label="Full Prompt (Editable)", lines=10)
+    prompt_selector.change(build_full_prompt, prompt_selector, full_prompt_box)
 
     generate_btn = gr.Button("Generate HTML")
 
     with gr.Tabs():
         with gr.Tab("HTML Source"):
-            html_code = gr.Code(
-                label="Generated HTML",
-                language="html",
-                lines=25
-            )
+            html_code = gr.Code(language="html", lines=25)
 
         with gr.Tab("Rendered Preview"):
             html_iframe = gr.HTML()
 
+        with gr.Tab("Human Evaluation"):
+            gr.Markdown("### Rate the generated result")
+
+            gr.Markdown("""**Visual appearance – color scheme & typography**  
+                1 = Very poor · 3 = Acceptable · 5 = Excellent""")
+
+            color_typography = gr.Radio([1, 2, 3, 4, 5], label="Score")
+
+            gr.Markdown("""**Visual appearance – layout & structure**  
+            1 = Broken · 3 = Basic · 5 = Polished""")
+
+            layout = gr.Radio([1, 2, 3, 4, 5], label="Score")
+
+            gr.Markdown("""**Correctness (prompt adherence)**  
+            1 = Incorrect · 3 = Mostly correct · 5 = Fully correct""")
+
+            correctness = gr.Radio([1, 2, 3, 4, 5], label="Score")
+
+            gr.Markdown("""**Functionality**  
+            1 = Broken · 3 = Works with issues · 5 = Works perfectly""")
+
+            functionality = gr.Radio([1, 2, 3, 4, 5], label="Score")
+
+            comments = gr.Textbox(
+                label="Free-form evaluation comments",
+                lines=5,
+                placeholder="Notes, issues, suggestions, edge cases…"
+            )
+
+            save_eval_btn = gr.Button("Save Evaluation")
+            eval_status = gr.Textbox(label="Status", interactive=False)
+
     generate_btn.click(
-        fn=generate_html,
-        inputs=[ollama_url, model_dropdown, full_prompt_box],
-        outputs=[html_code, html_iframe]
+        generate_html,
+        inputs=[ollama_url, model_dropdown, full_prompt_box, prompt_selector],
+        outputs=[html_code, html_iframe, last_run_id]
+    )
+
+    save_eval_btn.click(
+        save_evaluation,
+        inputs=[
+            last_run_id,
+            color_typography,
+            layout,
+            correctness,
+            functionality,
+            comments
+        ],
+        outputs=eval_status
     )
 
 if __name__ == "__main__":
