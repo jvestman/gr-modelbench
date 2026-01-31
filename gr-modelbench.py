@@ -13,6 +13,8 @@ from pathlib import Path
 
 LOG_FILE = Path("log.csv")
 OLLAMA_URL_FILE = Path("ollama_url.txt")
+PREVIEW_DIR = Path("previews")
+PREVIEW_DIR.mkdir(exist_ok=True)
 
 # ---------- System Prompt ----------
 
@@ -61,7 +63,7 @@ def wrap_iframe(html_content: str) -> str:
     ></iframe>
     """
 
-# ---------- Logging (EAV) ----------
+# ---------- Logging ----------
 
 def log_generation_eav(entity_id: str, data: dict):
     file_exists = LOG_FILE.exists()
@@ -99,13 +101,17 @@ def generate_html(ollama_url, model, full_prompt, prompt_template_name):
     r = requests.post(
         f"{ollama_url.rstrip('/')}/api/generate",
         json={"model": model, "prompt": full_prompt, "stream": False},
-        timeout=300
+        timeout=60
     )
     r.raise_for_status()
     resp = r.json()
 
     raw = resp.get("response", "")
     html_out = extract_html_from_fences(raw)
+
+    # Save standalone preview file
+    preview_path = PREVIEW_DIR / f"{run_id}.html"
+    preview_path.write_text(html_out, encoding="utf-8")
 
     duration = time.time() - start
     eval_count = resp.get("eval_count", 0)
@@ -125,10 +131,16 @@ def generate_html(ollama_url, model, full_prompt, prompt_template_name):
         "generation_time_sec": round(duration, 3),
         "eval_count": eval_count,
         "prompt_count": prompt_count,
-        "tokens_per_sec": round(tps, 2) if tps else None
+        "tokens_per_sec": round(tps, 2) if tps else None,
+        "preview_file": str(preview_path)
     })
 
-    return html_out, wrap_iframe(html_out), run_id
+    return (
+        html_out,
+        wrap_iframe(html_out),
+        run_id,
+        str(preview_path)
+    )
 
 # ---------- Human Evaluation ----------
 
@@ -159,6 +171,7 @@ with gr.Blocks(title="Remote Ollama HTML Generator") as app:
     gr.Markdown("## 🦙 Remote Ollama HTML Generator")
 
     last_run_id = gr.State()
+    preview_file = gr.State()
 
     with gr.Row():
         ollama_url = gr.Textbox(label="Ollama Base URL", value=load_ollama_url())
@@ -181,43 +194,35 @@ with gr.Blocks(title="Remote Ollama HTML Generator") as app:
 
         with gr.Tab("Rendered Preview"):
             html_iframe = gr.HTML()
+            open_preview = gr.File(label="Open preview in new tab")
 
         with gr.Tab("Human Evaluation"):
-            gr.Markdown("### Rate the generated result")
+            gr.Markdown("### Human Evaluation")
 
-            gr.Markdown("""**Visual appearance – color scheme & typography**  
-                1 = Very poor · 3 = Acceptable · 5 = Excellent""")
+            color_typography = gr.Radio([1, 2, 3, 4, 5],
+                label="Visual appearance – color & typography")
 
-            color_typography = gr.Radio([1, 2, 3, 4, 5], label="Score")
+            layout = gr.Radio([1, 2, 3, 4, 5],
+                label="Layout & structure")
 
-            gr.Markdown("""**Visual appearance – layout & structure**  
-            1 = Broken · 3 = Basic · 5 = Polished""")
+            correctness = gr.Radio([1, 2, 3, 4, 5],
+                label="Correctness (prompt adherence)")
 
-            layout = gr.Radio([1, 2, 3, 4, 5], label="Score")
-
-            gr.Markdown("""**Correctness (prompt adherence)**  
-            1 = Incorrect · 3 = Mostly correct · 5 = Fully correct""")
-
-            correctness = gr.Radio([1, 2, 3, 4, 5], label="Score")
-
-            gr.Markdown("""**Functionality**  
-            1 = Broken · 3 = Works with issues · 5 = Works perfectly""")
-
-            functionality = gr.Radio([1, 2, 3, 4, 5], label="Score")
+            functionality = gr.Radio([1, 2, 3, 4, 5],
+                label="Functionality")
 
             comments = gr.Textbox(
-                label="Free-form evaluation comments",
-                lines=5,
-                placeholder="Notes, issues, suggestions, edge cases…"
+                label="Free-form comments",
+                lines=5
             )
 
             save_eval_btn = gr.Button("Save Evaluation")
-            eval_status = gr.Textbox(label="Status", interactive=False)
+            eval_status = gr.Textbox(interactive=False)
 
     generate_btn.click(
         generate_html,
         inputs=[ollama_url, model_dropdown, full_prompt_box, prompt_selector],
-        outputs=[html_code, html_iframe, last_run_id]
+        outputs=[html_code, html_iframe, last_run_id, open_preview]
     )
 
     save_eval_btn.click(
