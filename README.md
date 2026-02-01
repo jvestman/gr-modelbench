@@ -1,6 +1,8 @@
 # 🦙 gr-modelbench
 
-A **Gradio-based benchmarking and evaluation tool** for generating HTML pages with **remote Ollama models**, running **batch (“patch mode”) generations**, previewing results, and performing **human evaluations** with structured scoring.
+A **Gradio-based benchmarking and evaluation tool** for generating HTML pages with **remote Ollama models**, running **batch (“batch mode”) generations**, previewing results, and performing **human evaluations** with structured scoring.
+
+![Screenshot displaying batcch generation in progress](screenshot.png "Screenshot")
 
 Designed for:
 - Comparing multiple LLMs
@@ -18,7 +20,7 @@ Designed for:
 - Discover available models dynamically
 - Execute `generate` requests remotely
 
-### 🧩 Patch Mode (Batch Generation)
+### 🧩 Batch Mode (Batch Generation)
 - Select **multiple models**
 - Select **multiple prompt templates**
 - Or provide a **manual prompt** (overrides templates)
