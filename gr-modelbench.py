@@ -15,7 +15,7 @@ with gr.Blocks(title="Patch Mode HTML Generator") as app:
     # Generate jobs
     ui["generate_btn"].click(
         fn=on_generate,
-        inputs=[ui["model_selector"], ui["prompt_selector"], ui["ollama_url"]],
+        inputs=[ui["model_selector"], ui["prompt_selector"], ui["manual_prompt"], ui["ollama_url"]],
         outputs=[ui["jobs_state"]]
     )
 
