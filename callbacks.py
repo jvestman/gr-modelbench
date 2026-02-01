@@ -29,7 +29,7 @@ def on_generate(models, prompts, manual_prompt, ollama_url_val):
     return JOB_LIST
 
 def display_jobs(_):
-    return [[j["id"][:8], j["model"], j["prompt_name"], j["status"]] for j in JOB_LIST]
+    return [[j["id"][:8], j["model"], j["prompt_name"], j["status"], j["stats"]] for j in JOB_LIST]
 
 def on_select_job(job_row, last_job_id, evt: gr.SelectData):
     selected_job = JOB_LIST[evt.index[0]]

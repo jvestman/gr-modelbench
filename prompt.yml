@@ -73,4 +73,8 @@
     Create a tetris game with html and javascript that works in broser.
 - name: asteroids
   prompt: |
-    Create an asteroids game with html and javascript that works in browser.    
+    Create an asteroids game with html and javascript that works in browser.
+- name: snake_game
+  prompt: |
+    Create a snake game with html and javascript that works in browser.
+    

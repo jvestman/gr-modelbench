@@ -39,7 +39,7 @@ def create_ui():
 
     # ---------------- Job List ----------------
     jobs_display = gr.DataFrame(
-        headers=["Job ID", "Model", "Prompt", "Status"],
+        headers=["Job ID", "Model", "Prompt", "Status", "Stats"],
         interactive=True
     )
 

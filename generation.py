@@ -22,8 +22,10 @@ def generate_html(run_id, ollama_url, model, full_prompt, prompt_template_name):
     eval_count = resp.get("eval_count", 0)
     prompt_count = resp.get("prompt_eval_count", 0)
     eval_dur_ns = resp.get("eval_duration", 0)
+    eval_duration = round(eval_dur_ns / 1e9, 2)
 
     tps = eval_count / (eval_dur_ns / 1e9) if eval_dur_ns else None
+    tokens_per_sec = round(tps, 2) if tps else None
 
     log_generation_eav(run_id, {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -35,10 +37,10 @@ def generate_html(run_id, ollama_url, model, full_prompt, prompt_template_name):
         "response_length_chars": len(raw),
         "generation_time_sec": round(duration, 3),
         "eval_count": eval_count,
-        "eval_duration": round(eval_dur_ns / 1e9, 2), 
+        "eval_duration": eval_duration, 
         "prompt_count": prompt_count,
-        "tokens_per_sec": round(tps, 2) if tps else None,
+        "tokens_per_sec": tokens_per_sec,
         "preview_url": preview_url
     })
 
-    return html_out, preview_url, run_id
+    return html_out, preview_url, run_id, eval_count, eval_duration, tokens_per_sec
