@@ -77,4 +77,166 @@
 - name: snake_game
   prompt: |
     Create a snake game with html and javascript that works in browser.
+- name: edit_change_header_text
+  prompt: |
+    Below is a complete HTML/CSS/JavaScript file.
+
+    Modify the page so that:
+    - The header text "Welcome to My Website" is changed to "Welcome to Acme Corp"
+    - No other visual or functional changes are introduced
+
+    Return the full updated file.
+
+    ---
+    <file>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>My Website</title>
+      <style>
+        body {
+          margin: 0;
+          font-family: Arial, sans-serif;
+        }
+        header {
+          background-color: #333;
+          color: white;
+          padding: 20px;
+          text-align: center;
+        }
+        nav {
+          background-color: #555;
+          padding: 10px;
+          text-align: center;
+        }
+        nav a {
+          color: white;
+          margin: 0 10px;
+          text-decoration: none;
+        }
+        .hero {
+          padding: 40px;
+          text-align: center;
+        }
+        footer {
+          background-color: #333;
+          color: white;
+          text-align: center;
+          padding: 10px;
+        }
+      </style>
+    </head>
+    <body>
+      <header>
+        <h1>Welcome to My Website</h1>
+      </header>
+
+      <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+      </nav>
+
+      <section class="hero">
+        <p>This is a simple hero section.</p>
+        <button id="cta">Click Me</button>
+      </section>
+
+      <footer>
+        <p>&copy; 2024 My Website</p>
+      </footer>
+
+      <script>
+        document.getElementById("cta").addEventListener("click", function () {
+          alert("Button clicked!");
+        });
+      </script>
+    </body>
+    </html>
+    </file>
+- name: edit_add_nav_item
+  prompt: |
+    Below is a complete HTML/CSS/JavaScript file.
+
+    Edit the page so that:
+    - A new navigation item labeled "Blog" is added to the navigation bar
+    - A corresponding "Blog" section is added below the hero section
+    - The new section uses the same visual style as the existing hero section
+    - No existing sections, styles, or JavaScript behavior are removed or altered
+
+    Return the full updated file.
+
+    ---
+    <file>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>My Website</title>
+      <style>
+        body {
+          margin: 0;
+          font-family: Arial, sans-serif;
+        }
+        header {
+          background-color: #333;
+          color: white;
+          padding: 20px;
+          text-align: center;
+        }
+        nav {
+          background-color: #555;
+          padding: 10px;
+          text-align: center;
+        }
+        nav a {
+          color: white;
+          margin: 0 10px;
+          text-decoration: none;
+        }
+        .hero {
+          padding: 40px;
+          text-align: center;
+          background-color: #f4f4f4;
+        }
+        footer {
+          background-color: #333;
+          color: white;
+          text-align: center;
+          padding: 10px;
+        }
+      </style>
+    </head>
+    <body>
+      <header>
+        <h1>Welcome to My Website</h1>
+      </header>
+
+      <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+      </nav>
+
+      <section class="hero">
+        <p>This is a simple hero section.</p>
+        <button id="cta">Click Me</button>
+      </section>
+
+      <footer>
+        <p>&copy; 2024 My Website</p>
+      </footer>
+
+      <script>
+        document.getElementById("cta").addEventListener("click", function () {
+          alert("Button clicked!");
+        });
+      </script>
+    </body>
+    </html>
+    </file>
+
     

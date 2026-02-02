@@ -4,7 +4,7 @@ from ollama import get_models
 from ui_components import create_ui
 from callbacks import on_generate, display_jobs, on_select_job, save_evaluation_cb
 
-with gr.Blocks(title="Patch Mode HTML Generator") as app:
+with gr.Blocks(title="gr-modelbench") as app:
     ui = create_ui()
 
     # Ollama URL

@@ -1,6 +1,6 @@
 import gradio as gr
 import threading
-from patch_mode import create_jobs, run_jobs_background
+from batch_mode import create_jobs, run_jobs_background
 from rendering import wrap_iframe
 from evaluation import save_evaluation
 from prompts import build_full_prompt
