@@ -238,5 +238,26 @@
     </body>
     </html>
     </file>
+- name: tic_tac_toe
+  prompt: |
+    Generate a tic tac toe game in html and javascript that has arbitrary sized grid and requires five X's or O's in a row for victory. Let computer play with O's. 
+- name: crm
+  prompt: |
+    Generate a one page browser application that is a customer relationship management application. 
 
-    
+    The application should have views for managing (crud use cases) the following concepts:
+
+    * Organizations (can be hierarchical, nested and composite, there is organization tree for own and customer organizations)
+    * Persons
+    * Services / Products
+    * Contracts (both frame agreements and subscriptions or orders )
+    * Sales cases
+    * Interactions (review meetings, phone calls, emails, meetings)
+
+    Implement crud use cases for all concepts.
+
+- name: drum_machine
+  prompt: |
+    Generate a html & javascript page that is a drum machine app (similar to TR-808). Synthesize the sounds.
+
+        

@@ -13,7 +13,7 @@ def get_models(ollama_url):
 def generate(ollama_url, model, prompt):
     r = requests.post(
         f"{ollama_url.rstrip('/')}/api/generate",
-        json={"model": model, "prompt": prompt, "stream": False},
+        json={"model": model, "prompt": prompt, "stream": False, "options": {"num_ctx": 64000}},
         timeout=300
     )
     r.raise_for_status()
