@@ -15,7 +15,7 @@ with gr.Blocks(title="gr-modelbench") as app:
     # Generate jobs
     ui["generate_btn"].click(
         fn=on_generate,
-        inputs=[ui["model_selector"], ui["prompt_selector"], ui["manual_prompt"], ui["ollama_url"]],
+        inputs=[ui["model_selector"], ui["prompt_selector"], ui["manual_prompt"], ui["ollama_url"], ui["backend"]],
         outputs=[ui["jobs_state"]]
     )
 

@@ -29,7 +29,7 @@ def create_jobs(models, prompt_names, prompt_texts):
     return jobs
 
 
-def run_jobs_background(jobs_list, ollama_url, update_callback=None):
+def run_jobs_background(jobs_list, ollama_url, update_callback=None, backend="ollama"):
     """
     Sequentially execute pending jobs in background.
     Calls update_callback(jobs_list) after each job update.
@@ -46,7 +46,8 @@ def run_jobs_background(jobs_list, ollama_url, update_callback=None):
                     ollama_url,
                     job["model"],
                     job["prompt_text"],
-                    job["prompt_name"]
+                    job["prompt_name"],
+                    backend
                 )
                 html_output = extract_html_from_fences(raw_output)
                 iframe = wrap_iframe(html_output)

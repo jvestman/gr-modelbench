@@ -14,6 +14,7 @@ def create_ui():
     # ---------------- Top row ----------------
     with gr.Row():
         ollama_url = gr.Textbox(label="Ollama Base URL")
+        backend = gr.Dropdown(label="Backend", choices=["ollama", "openai"])
         discover_btn = gr.Button("Discover Models")
         model_selector = gr.Dropdown(
             label="Select Models",
@@ -94,6 +95,7 @@ def create_ui():
 
         # controls
         "ollama_url": ollama_url,
+        "backend": backend,
         "discover_btn": discover_btn,
         "model_selector": model_selector,
         "prompt_selector": prompt_selector,

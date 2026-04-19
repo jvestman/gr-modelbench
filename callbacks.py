@@ -8,7 +8,7 @@ from prompts import build_full_prompt
 # In-memory job list
 JOB_LIST = []
 
-def on_generate(models, prompts, manual_prompt, ollama_url_val):
+def on_generate(models, prompts, manual_prompt, ollama_url_val, backend):
     """Create jobs and run sequentially in background."""
     global JOB_LIST 
 
@@ -22,7 +22,7 @@ def on_generate(models, prompts, manual_prompt, ollama_url_val):
 
     thread = threading.Thread(
         target=run_jobs_background,
-        args=(JOB_LIST, ollama_url_val, None),
+        args=(JOB_LIST, ollama_url_val, None, backend),
         daemon=True
     )
     thread.start()
