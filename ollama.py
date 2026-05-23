@@ -4,16 +4,19 @@ import gradio as gr
 def get_models(base_url, backend="ollama", api_key=None):
     try:
         base_url = base_url.rstrip("/")
-
+        print("get models")
         if backend == "ollama":
+            print("ollama")
             r = requests.get(f"{base_url}/api/tags", timeout=5)
             r.raise_for_status()
             models = sorted([m["name"] for m in r.json().get("models", [])])
 
         elif backend == "openai":
             headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+            print("Get models")
             r = requests.get(f"{base_url}/v1/models", headers=headers, timeout=5)
             r.raise_for_status()
+            print(r.json())
             models = sorted([m["id"] for m in r.json().get("data", [])])
 
         else:

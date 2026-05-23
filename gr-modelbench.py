@@ -10,7 +10,11 @@ with gr.Blocks(title="gr-modelbench") as app:
     # Ollama URL
     ui["ollama_url"].value = load_ollama_url()
     ui["ollama_url"].change(save_ollama_url, ui["ollama_url"], ui["ollama_url"])
-    ui["discover_btn"].click(get_models, ui["ollama_url"], ui["model_selector"])
+    ui["discover_btn"].click(
+        fn=get_models, 
+        inputs=[ui["ollama_url"], ui["backend"]],
+        outputs=[ui["model_selector"]]
+    )
 
     # Generate jobs
     ui["generate_btn"].click(
