@@ -15,8 +15,9 @@ Designed for:
 
 ## ✨ Features
 
-### 🔌 Remote Ollama Integration
+### 🔌 Remote Ollama & OpenAI Integration
 - Connect to any remote Ollama instance via URL
+- Connect to OpenAI API
 - Discover available models dynamically
 - Execute `generate` requests remotely
 
